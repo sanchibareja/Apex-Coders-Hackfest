@@ -1,0 +1,355 @@
+<%- include('partials/header') %>
+
+<div class="hero-section">
+  <div class="hero-badge">Chandigarh Hack Day 2026 &bull; Theme: Social Implications of Technology</div>
+  <h1 class="hero-title">Defend Your Community Against Viral Scams &amp; Fake News</h1>
+  <p class="hero-desc">
+    Paste suspicious forwarded messages or upload screenshots of deceptive posts. Our open-source AI forensic engine inspects manipulation tactics, calculates trust scores, and generates empathetic 2-sentence WhatsApp debunk cards ready to copy into family groups.
+  </p>
+</div>
+
+<% if (typeof notice !== 'undefined' && notice) { %>
+  <div class="alert-box alert-info">
+    <div class="alert-icon">🎉</div>
+    <div class="alert-text"><%= notice %></div>
+  </div>
+<% } %>
+
+<% if (error) { %>
+  <div class="alert-box alert-error">
+    <div class="alert-icon">⚠️</div>
+    <div class="alert-text"><%= error %></div>
+  </div>
+<% } %>
+
+<!-- ========================================== -->
+<!-- 1. MULTI-INPUT VERIFICATION FORM -->
+<!-- ========================================== -->
+<section class="card form-card">
+  <div class="card-header">
+    <div class="header-icon">🔍</div>
+    <div>
+      <h2 class="card-title">Multi-Input Message Verification</h2>
+      <p class="card-subtitle">Verify forwarded WhatsApp text, headlines, SMS fraud, or upload post screenshots</p>
+    </div>
+  </div>
+
+  <form id="verifyForm" action="/verify" method="POST" enctype="multipart/form-data">
+    <!-- Quick preset chips for rapid testing / demo -->
+    <div class="demo-samples">
+      <span class="sample-label">⚡ Try Quick Samples:</span>
+      <button type="button" class="chip" data-sample="fake-payment">💸 Fake Payment Screenshot (Spoof)</button>
+      <button type="button" class="chip" data-sample="real-payment">✅ Real UPI Payment Receipt</button>
+      <button type="button" class="chip" data-sample="real-news">📰 Real Official News (PIB/ISRO)</button>
+      <button type="button" class="chip" data-sample="free-recharge">🎁 Fake Viral Recharge Scam</button>
+      <button type="button" class="chip" data-sample="bank-kyc">🏦 Urgent Bank KYC Alert</button>
+    </div>
+
+    <!-- Optional headline / subject -->
+    <div class="form-group">
+      <label for="headlineText" class="form-label">
+        Headline / Claim Topic <span class="label-optional">(Optional)</span>
+      </label>
+      <input 
+        type="text" 
+        id="headlineText" 
+        name="headlineText" 
+        class="form-input" 
+        placeholder="e.g. Govt giving free Rs 5000 recharge, or Electricity power cut tonight..."
+        maxlength="200"
+      >
+    </div>
+
+    <!-- Message text input -->
+    <div class="form-group">
+      <label for="messageText" class="form-label">
+        Forwarded Text / Post Content
+      </label>
+      <textarea 
+        id="messageText" 
+        name="messageText" 
+        class="form-textarea" 
+        rows="5" 
+        placeholder="Paste the exact text of the suspicious WhatsApp forward, SMS alert, Facebook post, or telegram message here..."
+      ></textarea>
+    </div>
+
+    <!-- Screenshot Upload (Multer) -->
+    <div class="form-group">
+      <label class="form-label">
+        Upload Screenshot <span class="label-optional">(WhatsApp forward, Instagram post, or SMS screenshot)</span>
+      </label>
+      
+      <div class="file-dropzone" id="dropzone">
+        <input 
+          type="file" 
+          id="screenshot" 
+          name="screenshot" 
+          accept="image/jpeg,image/png,image/webp,image/gif" 
+          class="file-input"
+        >
+        <div class="dropzone-content">
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <p class="dropzone-title"><strong>Click to upload</strong> or drag &amp; drop screenshot</p>
+          <p class="dropzone-hint">Supported formats: PNG, JPG, WEBP &bull; Max 10MB</p>
+        </div>
+
+        <div id="filePreviewContainer" class="file-preview-box" style="display: none;">
+          <img id="filePreviewImg" src="" alt="Screenshot Preview" class="preview-thumb">
+          <div class="file-info">
+            <span id="fileName" class="preview-filename">evidence.png</span>
+            <span id="fileSize" class="preview-filesize">1.2 MB</span>
+          </div>
+          <button type="button" id="removeFileBtn" class="btn-remove-file" title="Remove image">&times;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" id="submitBtn" class="btn btn-primary btn-lg">
+        <span class="btn-icon">🛡️</span>
+        <span class="btn-text">Execute AI Forensic Scan</span>
+      </button>
+      <button type="reset" id="resetBtn" class="btn btn-outline">Clear Form</button>
+    </div>
+  </form>
+
+  <!-- Live Loading Spinner during AI inference -->
+  <div id="loadingIndicator" class="loading-container" style="display: none;">
+    <div class="spinner"></div>
+    <h3 class="loading-title">Forensic Engine Analyzing Content...</h3>
+    <p class="loading-subtitle">Querying Open-Source LLM for psychological triggers, fallacy tags, and source fact checks</p>
+  </div>
+</section>
+
+<!-- ========================================== -->
+<!-- 2. FORENSIC ANALYSIS & TRUST METRICS OUTPUT -->
+<!-- ========================================== -->
+<% if (report) { %>
+<section class="results-wrapper" id="resultsSection">
+  <div class="results-header">
+    <div class="results-title-group">
+      <span class="pill pill-forensics">Forensic Intelligence Report</span>
+      <h2 class="report-main-headline"><%= report.headline %></h2>
+      <p class="report-meta">
+        Verified on: <%= new Date(report.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) %> 
+        &bull; Target Audience: <strong><%= report.societalImpact?.targetAudience || 'General Public' %></strong>
+      </p>
+    </div>
+
+    <!-- Trust Score & Risk Level Badge -->
+    <div class="risk-badge-card risk-<%= report.riskLevel.toLowerCase() %>">
+      <div class="risk-score-circle">
+        <div class="score-number"><%= report.trustScore %>%</div>
+        <div class="score-label">Trust Score</div>
+      </div>
+      <div class="risk-verdict-details">
+        <div class="risk-level-tag"><%= report.riskLevel %> RISK</div>
+        <div class="verdict-tag">Verdict: <%= report.verdict %></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-grid">
+    <!-- Left Column: Manipulation Flags, Fallacies & Claims -->
+    <div class="report-column-main">
+      
+      <!-- Psychological & Manipulation Flags -->
+      <div class="card metric-card">
+        <div class="card-header-compact">
+          <span class="card-icon">🧠</span>
+          <h3 class="section-title">Cognitive Fallacies &amp; Emotional Triggers</h3>
+        </div>
+        
+        <div class="tag-section">
+          <label class="tag-label">Emotional Manipulation Levers Detected:</label>
+          <div class="tag-cloud">
+            <% if (report.manipulationFlags && report.manipulationFlags.length > 0) { %>
+              <% report.manipulationFlags.forEach(flag => { %>
+                <span class="pill pill-warning">⚠️ <%= flag %></span>
+              <% }) %>
+            <% } else { %>
+              <span class="pill pill-neutral">None explicitly flagged</span>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="tag-section">
+          <label class="tag-label">Logical &amp; Cognitive Fallacies Identified:</label>
+          <div class="tag-cloud">
+            <% if (report.cognitiveFallacies && report.cognitiveFallacies.length > 0) { %>
+              <% report.cognitiveFallacies.forEach(fallacy => { %>
+                <span class="pill pill-fallacy">🔎 <%= fallacy %></span>
+              <% }) %>
+            <% } else { %>
+              <span class="pill pill-neutral">Standard discourse</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forensic Claims Breakdown -->
+      <div class="card metric-card">
+        <div class="card-header-compact">
+          <span class="card-icon">📋</span>
+          <h3 class="section-title">Factual Forensic Breakdown</h3>
+        </div>
+        
+        <div class="claims-list">
+          <% if (report.forensicBreakdown && report.forensicBreakdown.length > 0) { %>
+            <% report.forensicBreakdown.forEach((item, index) => { %>
+              <div class="claim-item">
+                <div class="claim-top">
+                  <span class="claim-index">Claim #<%= index + 1 %></span>
+                  <span class="claim-status status-<%= (item.status || 'FALSE').toLowerCase() %>">
+                    <%= item.status || 'UNSUBSTANTIATED' %>
+                  </span>
+                </div>
+                <div class="claim-text">"<%= item.claim %>"</div>
+                <div class="claim-analysis"><strong>Analysis:</strong> <%= item.analysis %></div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <p class="empty-text">No isolated claims parsed; evaluated contextually.</p>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Official Citations -->
+      <div class="card metric-card">
+        <div class="card-header-compact">
+          <span class="card-icon">📚</span>
+          <h3 class="section-title">Credible Citations &amp; Verification Sources</h3>
+        </div>
+        <ul class="citations-list">
+          <% if (report.citations && report.citations.length > 0) { %>
+            <% report.citations.forEach(citation => { %>
+              <li class="citation-item">
+                <div class="citation-head">
+                  <a href="<%= citation.url %>" target="_blank" rel="noopener noreferrer" class="citation-link">
+                    <%= citation.sourceName %>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                </div>
+                <% if (citation.note) { %>
+                  <p class="citation-note"><%= citation.note %></p>
+                <% } %>
+              </li>
+            <% }) %>
+          <% } else { %>
+            <li class="citation-item">
+              <span class="citation-note">Cross-referenced against PIB Fact Check &amp; CERT-In security advisories.</span>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Right Column: WhatsApp Debunk Card & Societal Impact -->
+    <div class="report-column-side">
+      
+      <!-- ========================================== -->
+      <!-- 3. SOCIETAL IMPACT & WHATSAPP DEBUNK CARD -->
+      <!-- ========================================== -->
+      <div class="card whatsapp-card">
+        <div class="whatsapp-card-header">
+          <div class="wa-brand">
+            <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.888 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.716 1.457h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.486-8.413z"/>
+            </svg>
+            <div>
+              <h4 class="wa-title">WhatsApp Debunk Card</h4>
+              <p class="wa-subtitle">Polite 2-Sentence Message for Family Groups</p>
+            </div>
+          </div>
+          <span class="badge-empathetic">Polite &bull; Empathetic</span>
+        </div>
+
+        <div class="whatsapp-bubble">
+          <p id="whatsappDebunkText" class="wa-message-text"><%= report.debunkSummary %></p>
+          <div class="wa-bubble-footer">
+            <span class="wa-time">Verified Fact-Check &bull; Anti-Scam Shield</span>
+            <span class="wa-ticks">✓✓</span>
+          </div>
+        </div>
+
+        <div class="wa-actions">
+          <button type="button" id="copyWaBtn" class="btn btn-wa-copy" onclick="copyWhatsAppDebunk()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span id="copyBtnText">Copy 2-Sentence Debunk</span>
+          </button>
+          
+          <% 
+            const encodedWa = encodeURIComponent(report.debunkSummary + "\n\n(Fact-Checked via Fake News & Scam Shield: " + (report.citations?.[0]?.sourceName || "Official Verification") + ")");
+          %>
+          <a href="https://api.whatsapp.com/send?text=<%= encodedWa %>" target="_blank" rel="noopener noreferrer" class="btn btn-wa-share">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+            </svg>
+            Send to WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <!-- Societal Impact & Technology Theme Context -->
+      <div class="card metric-card">
+        <div class="card-header-compact">
+          <span class="card-icon">🌐</span>
+          <h3 class="section-title">Societal Implications</h3>
+        </div>
+        <div class="impact-content">
+          <div class="impact-row">
+            <span class="impact-label">Targeted Demographic:</span>
+            <span class="impact-val"><%= report.societalImpact?.targetAudience || 'General Public' %></span>
+          </div>
+          <div class="impact-row">
+            <span class="impact-label">Harm Potential:</span>
+            <span class="impact-val text-danger"><%= report.societalImpact?.harmPotential || 'Financial and psychological distress.' %></span>
+          </div>
+          <div class="impact-row">
+            <span class="impact-label">Theme Category:</span>
+            <span class="pill pill-category"><%= report.societalImpact?.themeCategory || 'Cyber Fraud' %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Uploaded Screenshot Preview (if provided) -->
+      <% if (report.imageUrl) { %>
+        <div class="card metric-card">
+          <div class="card-header-compact">
+            <span class="card-icon">🖼️</span>
+            <h3 class="section-title">Submitted Evidence Screenshot</h3>
+          </div>
+          <div class="evidence-preview-wrap">
+            <img src="<%= report.imageUrl %>" alt="Analyzed Screenshot" class="evidence-img">
+            <span class="evidence-name"><%= report.imageOriginalName || 'Screenshot Upload' %></span>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Community Confirmation Action -->
+      <div class="card action-sub-card">
+        <p class="community-callout">This report has been automatically recorded in the MongoDB Atlas community repository.</p>
+        <a href="/feed" class="btn btn-block btn-secondary">
+          View in Community Scam Feed &rarr;
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+<% } %>
+
+<%- include('partials/footer') %>
