@@ -1,0 +1,80 @@
+<%- include('../partials/header') %>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-icon-badge">🛡️</div>
+      <h2 class="auth-title">Join the Civic Shield</h2>
+      <p class="auth-subtitle">Create an account to report, verify, and safeguard community chat groups</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert-box alert-error">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-text"><%= error %></div>
+      </div>
+    <% } %>
+
+    <form action="/signup" method="POST" class="auth-form">
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          class="form-input" 
+          placeholder="e.g. Priya Sharma" 
+          required 
+          autocomplete="name"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          class="form-input" 
+          placeholder="name@example.com" 
+          required 
+          autocomplete="email"
+        >
+        <span class="input-helper">We will send a 6-digit verification OTP to this email address.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="form-input" 
+          placeholder="Minimum 6 characters" 
+          required 
+          minlength="6"
+          autocomplete="new-password"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="role" class="form-label">Community Role</label>
+        <select id="role" name="role" class="form-input form-select">
+          <option value="user" selected>Citizen Verifier (Standard Member)</option>
+          <option value="moderator">Community Moderator (Fact-Check Contributor)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">
+        <span>Send Verification OTP &rarr;</span>
+      </button>
+
+      <div class="auth-footer-links">
+        <span>Already have an account?</span>
+        <a href="/login" class="link-highlight">Log In</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

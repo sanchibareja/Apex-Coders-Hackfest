@@ -1,26 +1,11 @@
 {
-  "name": "apex-coders-hackfest",
-  "version": "1.0.0",
-  "description": "> *Hacktoberfest Hack Day Chandigarh 2026 Submission*  \r > *Theme:* Social Implications of Technology  \r > *Track:* DigitalOcean Open-Source AI",
-  "homepage": "https://github.com/sanchibareja/Apex-Coders-Hackfest#readme",
-  "bugs": {
-    "url": "https://github.com/sanchibareja/Apex-Coders-Hackfest/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sanchibareja/Apex-Coders-Hackfest.git"
-  },
-  "type": "commonjs",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
     "ejs": "^7.0.2",
     "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.11.4",
-    "multer": "^2.5.0",
-    "tesseract.js": "^7.0.0"
+    "multer": "^2.5.0"
   }
 }
