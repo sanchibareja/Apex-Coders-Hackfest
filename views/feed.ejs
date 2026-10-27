@@ -1,0 +1,178 @@
+<%- include('partials/header') %>
+
+<div class="feed-header-section">
+  <div class="feed-title-wrap">
+    <div class="hero-badge">Public Intelligence &bull; MongoDB Atlas Repository</div>
+    <h1 class="hero-title">Recent Debunked Scams &amp; Viral Hoaxes</h1>
+    <p class="hero-desc">
+      Explore the real-time community feed of AI-verified digital scams, phishing campaigns, and forwarded misinformation. Learn their manipulation tactics and copy verified debunk messages to safeguard your networks.
+    </p>
+  </div>
+
+  <!-- Filter & Search Controls -->
+  <div class="feed-controls-card">
+    <form action="/feed" method="GET" class="search-filter-form">
+      <div class="search-input-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="text" 
+          name="q" 
+          value="<%= searchQuery %>" 
+          placeholder="Search scams by headline, keywords (e.g. recharge, electricity, KYC, lottery)..." 
+          class="feed-search-input"
+        >
+        <% if (searchQuery) { %>
+          <a href="/feed?risk=<%= activeRisk %>" class="clear-search-btn" title="Clear search">&times;</a>
+        <% } %>
+      </div>
+
+      <div class="risk-filter-chips">
+        <span class="filter-label">Filter by Risk:</span>
+        <a href="/feed?risk=ALL<%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>" 
+           class="filter-chip <%= activeRisk === 'ALL' ? 'active' : '' %>">All Scams</a>
+        <a href="/feed?risk=CRITICAL<%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>" 
+           class="filter-chip chip-critical <%= activeRisk === 'CRITICAL' ? 'active' : '' %>">Critical Risk</a>
+        <a href="/feed?risk=HIGH<%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>" 
+           class="filter-chip chip-high <%= activeRisk === 'HIGH' ? 'active' : '' %>">High Risk</a>
+        <a href="/feed?risk=MODERATE<%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>" 
+           class="filter-chip chip-moderate <%= activeRisk === 'MODERATE' ? 'active' : '' %>">Moderate Risk</a>
+        <a href="/feed?risk=LOW<%= searchQuery ? '&q=' + encodeURIComponent(searchQuery) : '' %>" 
+           class="filter-chip chip-low <%= activeRisk === 'LOW' ? 'active' : '' %>">Low / Verified</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- COMMUNITY SCAM FEED GRID -->
+<!-- ========================================== -->
+<section class="feed-container">
+  <% if (reports && reports.length > 0) { %>
+    <div class="feed-stats-bar">
+      <span>Showing <strong><%= reports.length %></strong> verified community entries</span>
+      <% if (searchQuery || activeRisk !== 'ALL') { %>
+        <span>Filtered by: <em>Risk: <%= activeRisk %></em> <%= searchQuery ? '| Query: "' + searchQuery + '"' : '' %></span>
+      <% } %>
+    </div>
+
+    <div class="scams-grid">
+      <% reports.forEach(report => { %>
+        <article class="scam-card risk-border-<%= report.riskLevel.toLowerCase() %>" id="report-<%= report._id %>">
+          
+          <div class="scam-card-top">
+            <div class="scam-badge-row">
+              <span class="risk-badge risk-bg-<%= report.riskLevel.toLowerCase() %>">
+                <%= report.riskLevel %> RISK
+              </span>
+              <span class="category-badge">
+                <%= report.societalImpact?.themeCategory || 'Cyber Fraud' %>
+              </span>
+              <span class="trust-metric">
+                Trust Score: <strong><%= report.trustScore %>%</strong>
+              </span>
+            </div>
+            <time class="scam-time" datetime="<%= report.createdAt %>">
+              <%= new Date(report.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+            </time>
+          </div>
+
+          <h3 class="scam-title">
+            <a href="/report/<%= report._id %>"><%= report.headline %></a>
+          </h3>
+
+          <div class="scam-meta-row">
+            <span class="scam-author">👤 <%= report.authorName || 'Community Citizen' %></span>
+            <% if (typeof currentUser !== 'undefined' && currentUser && (currentUser.role === 'admin' || currentUser.role === 'moderator')) { %>
+              <button type="button" class="btn-delete-report" onclick="deleteReport('<%= report._id %>')" title="Moderator Action: Remove Report">
+                🗑️ Delete
+              </button>
+            <% } %>
+          </div>
+
+          <div class="original-snippet">
+            <span class="snippet-label">Forwarded Content:</span>
+            <p class="snippet-text">"<%= report.originalContent %>"</p>
+          </div>
+
+          <% if (report.imageUrl) { %>
+            <div class="scam-image-preview">
+              <img src="<%= report.imageUrl %>" alt="Attached evidence screenshot" loading="lazy">
+              <span class="img-flag">Attached Screenshot Evidence</span>
+            </div>
+          <% } %>
+
+          <!-- Psychological Triggers & Fallacies -->
+          <div class="scam-tags-section">
+            <div class="scam-tag-list">
+              <% if (report.manipulationFlags && report.manipulationFlags.length > 0) { %>
+                <% report.manipulationFlags.slice(0, 2).forEach(flag => { %>
+                  <span class="micro-pill pill-warning">⚠️ <%= flag %></span>
+                <% }) %>
+              <% } %>
+              <% if (report.cognitiveFallacies && report.cognitiveFallacies.length > 0) { %>
+                <% report.cognitiveFallacies.slice(0, 2).forEach(fallacy => { %>
+                  <span class="micro-pill pill-fallacy">🔎 <%= fallacy %></span>
+                <% }) %>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- WhatsApp Polite Debunk Preview -->
+          <div class="scam-debunk-box">
+            <div class="debunk-box-header">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="#25D366">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.888 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.716 1.457h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.486-8.413z"/>
+              </svg>
+              <span>Shareable 2-Sentence WhatsApp Debunk</span>
+            </div>
+            <p class="debunk-snippet-text"><%= report.debunkSummary %></p>
+          </div>
+
+          <!-- Card Actions (Upvote + Copy) -->
+          <div class="scam-card-footer">
+            <button 
+              type="button" 
+              class="btn-vote" 
+              onclick="upvoteReport('<%= report._id %>')" 
+              id="vote-btn-<%= report._id %>"
+            >
+              <span class="vote-icon">👍</span>
+              <span class="vote-label">Confirm Scam</span>
+              <span class="vote-count" id="vote-count-<%= report._id %>"><%= report.upvotes || 0 %></span>
+            </button>
+
+            <button 
+              type="button" 
+              class="btn-card-copy" 
+              onclick="copyFeedDebunk(this, `<%= report.debunkSummary.replace(/`/g, '\\`').replace(/"/g, '&quot;') %>`)"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy Debunk</span>
+            </button>
+
+            <a href="/report/<%= report._id %>" class="btn-card-details">
+              Full Forensics &rarr;
+            </a>
+          </div>
+
+        </article>
+      <% }) %>
+    </div>
+
+  <% } else { %>
+    <div class="empty-state-card">
+      <div class="empty-icon">🛡️</div>
+      <h3>No scam reports match your criteria</h3>
+      <p>Try clearing your search query or switching to 'All Scams' filter.</p>
+      <a href="/feed" class="btn btn-primary">Reset Filters</a>
+    </div>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>
