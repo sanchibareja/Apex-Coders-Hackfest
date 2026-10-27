@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fake News & Scam Shield | Hacktoberfest Chandigarh 2026</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <a href="/" class="brand-link">
+          <div class="brand-shield-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">Fake News &amp; Scam Shield</span>
+            <span class="brand-subtitle">Chandigarh Hack Day 2026 &bull; Social Implications of Tech</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger Toggle -->
+      <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle navigation menu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+
+      <nav class="nav-links" id="mainNav">
+        <a href="/" class="nav-link <%= (typeof activeTab !== 'undefined' && activeTab === 'home') ? 'active' : '' %>">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          Verify Message
+        </a>
+        <a href="/feed" class="nav-link <%= (typeof activeTab !== 'undefined' && activeTab === 'feed') ? 'active' : '' %>">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 11a9 9 0 0 1 9 9"></path>
+            <path d="M4 4a16 16 0 0 1 16 16"></path>
+            <circle cx="5" cy="19" r="1"></circle>
+          </svg>
+          Community Scam Feed
+        </a>
+
+        <!-- Auth Navigation & User Pill -->
+        <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+          <div class="user-profile-badge">
+            <span class="user-avatar"><%= currentUser.name.charAt(0).toUpperCase() %></span>
+            <div class="user-meta">
+              <span class="user-name"><%= currentUser.name %></span>
+              <span class="user-role-tag role-<%= currentUser.role %>"><%= currentUser.role.toUpperCase() %></span>
+            </div>
+            <a href="/logout" class="btn-logout" title="Log Out">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </a>
+          </div>
+        <% } else { %>
+          <div class="auth-btn-group">
+            <a href="/login" class="nav-link <%= (typeof activeTab !== 'undefined' && activeTab === 'login') ? 'active' : '' %>">Log In</a>
+            <a href="/signup" class="btn btn-primary btn-sm <%= (typeof activeTab !== 'undefined' && activeTab === 'signup') ? 'active' : '' %>">
+              <span>Sign Up (OTP)</span>
+            </a>
+          </div>
+        <% } %>
+
+        <div class="hackathon-tag">
+          <span class="pulse-dot"></span>
+          <span>Open-Source LLM Active</span>
+        </div>
+      </nav>
+    </div>
+  </header>
+  <main class="main-content">
